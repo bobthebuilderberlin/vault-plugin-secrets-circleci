@@ -1,4 +1,4 @@
-package gcpkms
+package circleci
 
 import (
 	"strings"

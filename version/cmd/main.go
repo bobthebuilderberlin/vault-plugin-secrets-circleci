@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bobthebuilderberlin/vault-plugin-secrets-cirlceci/version"
+	"github.com/bobthebuilderberlin/vault-plugin-secrets-circleci/version"
 )
 
 func main() {

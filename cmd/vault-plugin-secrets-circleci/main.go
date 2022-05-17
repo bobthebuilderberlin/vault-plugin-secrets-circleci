@@ -28,7 +28,7 @@ func main() {
 	tlsProviderFunc := api.VaultPluginTLSProvider(tlsConfig)
 
 	if err := plugin.Serve(&plugin.ServeOpts{
-		BackendFactoryFunc: gcpkms.Factory,
+		BackendFactoryFunc: circleci.Factory,
 		TLSProviderFunc:    tlsProviderFunc,
 	}); err != nil {
 		logger.Error("plugin shutting down", "error", err)
