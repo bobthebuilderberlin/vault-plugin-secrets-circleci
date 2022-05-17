@@ -4,7 +4,7 @@ import (
 	"os"
 
 	hclog "github.com/hashicorp/go-hclog"
-	gcpkms "github.com/hashicorp/vault-plugin-secrets-gcpkms"
+	circleci "github.com/bobthebuilderberlin/vault-plugin-secrets-circleci"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/plugin"
 )

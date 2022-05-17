@@ -1,4 +1,4 @@
-module github.com/hashicorp/vault-plugin-secrets-gcpkms
+module github.com/bobthebuilderberlin/vault-plugin-secrets-cirlceci
 
 go 1.12
 
