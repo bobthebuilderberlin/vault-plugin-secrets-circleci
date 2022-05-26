@@ -2,37 +2,21 @@ package circleci
 
 import (
 	"context"
-	"sync"
-	"time"
-
+	"errors"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
-	"github.com/hashicorp/vault/sdk/helper/useragent"
 	"github.com/hashicorp/vault/sdk/logical"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
+	"sync"
 
-	kmsapi "cloud.google.com/go/kms/apiv1"
-)
-
-var (
-	// defaultClientLifetime is the amount of time to cache the KMS client. This
-	// has to be less than 60 minutes or the oauth token will expire and
-	// subsequent requests will fail. The reason we cache the client is because
-	// the process for looking up credentials is not performant and the overhead
-	// is too significant for a plugin that will receive this much traffic.
-	defaultClientLifetime = 30 * time.Minute
+	circleci "github.com/grezar/go-circleci"
 )
 
 type backend struct {
 	*framework.Backend
 
-	// kmsClient is the actual client for connecting to KMS. It is cached on
+	// circleciClient is the actual client for connecting to CircleCI. It is cached on
 	// the backend for efficiency.
-	kmsClient           *kmsapi.KeyManagementClient
-	kmsClientCreateTime time.Time
-	kmsClientLifetime   time.Duration
-	kmsClientLock       sync.RWMutex
+	circleciClient      *circleci.Client
 
 	// ctx and ctxCancel are used to control overall plugin shutdown. These
 	// contexts are given to any client libraries or requests that should be
@@ -55,31 +39,15 @@ func Factory(ctx context.Context, c *logical.BackendConfig) (logical.Backend, er
 func Backend() *backend {
 	var b backend
 
-	b.kmsClientLifetime = defaultClientLifetime
 	b.ctx, b.ctxCancel = context.WithCancel(context.Background())
 
 	b.Backend = &framework.Backend{
 		BackendType: logical.TypeLogical,
-		Help: "The GCP KMS secrets engine provides pass-through encryption and " +
-			"decryption to Google Cloud KMS keys.",
+		Help: "CircleCI secrets engine.",
 
 		Paths: []*framework.Path{
 			b.pathConfig(),
-
-			b.pathKeys(),
-			b.pathKeysCRUD(),
-			b.pathKeysConfigCRUD(),
-			b.pathKeysDeregister(),
-			b.pathKeysRegister(),
-			b.pathKeysRotate(),
-			b.pathKeysTrim(),
-
-			b.pathDecrypt(),
-			b.pathEncrypt(),
-			b.pathPubkey(),
-			b.pathReencrypt(),
-			b.pathSign(),
-			b.pathVerify(),
+			b.pathContextKey(),
 		},
 
 		Invalidate: b.invalidate,
@@ -108,85 +76,59 @@ func (b *backend) invalidate(ctx context.Context, key string) {
 
 // ResetClient closes any connected clients.
 func (b *backend) ResetClient() {
-	b.kmsClientLock.Lock()
-	b.resetClient()
-	b.kmsClientLock.Unlock()
+	b.circleciClient = nil
 }
 
-// resetClient rests the underlying client. The caller is responsible for
-// acquiring and releasing locks. This method is not safe to call concurrently.
-func (b *backend) resetClient() {
-	if b.kmsClient != nil {
-		b.kmsClient.Close()
-		b.kmsClient = nil
-	}
 
-	b.kmsClientCreateTime = time.Unix(0, 0).UTC()
-}
-
-// KMSClient creates a new client for talking to the GCP KMS service.
-func (b *backend) KMSClient(s logical.Storage) (*kmsapi.KeyManagementClient, func(), error) {
+// CircleCIClient creates a new client for talking to the GCP KMS service.
+func (b *backend) CircleCIClient(s logical.Storage) (*circleci.Client, func(), error) {
 	// If the client already exists and is valid, return it
-	b.kmsClientLock.RLock()
-	if b.kmsClient != nil && time.Now().UTC().Sub(b.kmsClientCreateTime) < b.kmsClientLifetime {
-		closer := func() { b.kmsClientLock.RUnlock() }
-		return b.kmsClient, closer, nil
+	b.ctxLock.Lock()
+	if b.circleciClient != nil {
+		closer := func() { b.ctxLock.Unlock() }
+		return b.circleciClient, closer, nil
 	}
-	b.kmsClientLock.RUnlock()
 
-	// Acquire a full lock. Since all invocations acquire a read lock and defer
-	// the release of that lock, this will block until all clients are no longer
-	// in use. At that point, we can acquire a globally exclusive lock to close
-	// any connections and create a new client.
-	b.kmsClientLock.Lock()
-
-	b.Logger().Debug("creating new KMS client")
+	b.Logger().Debug("Creating new CircleCI Client...")
 
 	// Attempt to close an existing client if we have one.
-	b.resetClient()
+	b.ResetClient()
 
 	// Get the config
 	config, err := b.Config(b.ctx, s)
+	b.Logger().Debug("CircleCI configuration:", "config", config)
+
 	if err != nil {
-		b.kmsClientLock.Unlock()
+		b.ctxLock.Unlock()
 		return nil, nil, err
 	}
 
 	// If credentials were provided, use those. Otherwise fall back to the
 	// default application credentials.
-	var creds *google.Credentials
-	if config.Credentials != "" {
-		creds, err = google.CredentialsFromJSON(b.ctx, []byte(config.Credentials), config.Scopes...)
-		if err != nil {
-			b.kmsClientLock.Unlock()
-			return nil, nil, errwrap.Wrapf("failed to parse credentials: {{err}}", err)
-		}
-	} else {
-		creds, err = google.FindDefaultCredentials(b.ctx, config.Scopes...)
-		if err != nil {
-			b.kmsClientLock.Unlock()
-			return nil, nil, errwrap.Wrapf("failed to get default token source: {{err}}", err)
-		}
+	if len(config.APIToken) == 0 {
+		b.ctxLock.Unlock()
+		return nil, nil, errors.New("APIToken must not be empty or nil")
 	}
 
+	circleCIConfig:= circleci.DefaultConfig()
+	circleCIConfig.Token = config.APIToken
 	// Create and return the KMS client with a custom user agent.
-	client, err := kmsapi.NewKeyManagementClient(b.ctx,
-		option.WithCredentials(creds),
-		option.WithScopes(config.Scopes...),
-		option.WithUserAgent(useragent.String()),
-	)
+	client, err := circleci.NewClient(circleCIConfig)
+
 	if err != nil {
-		b.kmsClientLock.Unlock()
-		return nil, nil, errwrap.Wrapf("failed to create KMS client: {{err}}", err)
+		b.ctxLock.Unlock()
+		return nil, nil, errwrap.Wrapf("Failed to create CircleCI client: {{err}}", err)
 	}
+
+	b.Logger().Debug("CircleCI client created successfully.")
 
 	// Cache the client
-	b.kmsClient = client
-	b.kmsClientCreateTime = time.Now().UTC()
-	b.kmsClientLock.Unlock()
-
-	b.kmsClientLock.RLock()
-	closer := func() { b.kmsClientLock.RUnlock() }
+	b.circleciClient = client
+	b.ctxLock.Unlock()
+	closer := func() {
+		b.ctxLock.TryLock()
+	    b.ctxLock.Unlock()
+	}
 	return client, closer, nil
 }
 

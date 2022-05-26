@@ -13,25 +13,14 @@ func (b *backend) pathConfig() *framework.Path {
 	return &framework.Path{
 		Pattern: "config",
 
-		HelpSynopsis: "Configure the GCP KMS secrets engine",
-		HelpDescription: "Configure the GCP KMS secrets engine with credentials " +
-			"or manage the requested scope(s).",
+		HelpSynopsis: "Configure the CircleCI secrets engine",
+		HelpDescription: "Configure the CircleCI secrets engine with credentials",
 
 		Fields: map[string]*framework.FieldSchema{
-			"credentials": &framework.FieldSchema{
+			"api-token": &framework.FieldSchema{
 				Type: framework.TypeString,
-				Description: `
-The credentials to use for authenticating to Google Cloud. Leave this blank to
-use the Default Application Credentials or instance metadata authentication.
-`,
-			},
-
-			"scopes": &framework.FieldSchema{
-				Type: framework.TypeCommaStringSlice,
-				Description: `
-The list of full-URL scopes to request when authenticating. By default, this
-requests https://www.googleapis.com/auth/cloudkms.
-`,
+				Description: `The CircleCI API token to use for authenticating to CircleCI.`,
+				Required: true,
 			},
 		},
 
@@ -52,10 +41,7 @@ func (b *backend) pathConfigExists(ctx context.Context, req *logical.Request, _ 
 	if err != nil {
 		return false, errwrap.Wrapf("failed to get configuration from storage: {{err}}", err)
 	}
-	if entry == nil || len(entry.Value) == 0 {
-		return false, nil
-	}
-	return true, nil
+	return entry == nil || len(entry.Value) != 0, nil
 }
 
 // pathConfigRead corresponds to READ gcpkms/config and is used to
@@ -68,7 +54,7 @@ func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *f
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"scopes": c.Scopes,
+			"APIToken": c.APIToken,
 		},
 	}, nil
 }

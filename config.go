@@ -1,26 +1,19 @@
 package circleci
 
 import (
-	"strings"
-
-	"github.com/hashicorp/go-secure-stdlib/strutil"
 	"github.com/hashicorp/vault/sdk/framework"
-)
-
-const (
-	defaultScope = "https://www.googleapis.com/auth/cloudkms"
+	"strings"
 )
 
 // Config is the stored configuration.
 type Config struct {
-	Credentials string   `json:"credentials"`
-	Scopes      []string `json:"scopes"`
+	APIToken string   `json:"api-token"`
 }
 
 // DefaultConfig returns a config with the default values.
 func DefaultConfig() *Config {
 	return &Config{
-		Scopes: []string{defaultScope},
+		APIToken: "",
 	}
 }
 
@@ -32,18 +25,10 @@ func (c *Config) Update(d *framework.FieldData) (bool, error) {
 
 	changed := false
 
-	if v, ok := d.GetOk("credentials"); ok {
+	if v, ok := d.GetOk("api-token"); ok {
 		nv := strings.TrimSpace(v.(string))
-		if nv != c.Credentials {
-			c.Credentials = nv
-			changed = true
-		}
-	}
-
-	if v, ok := d.GetOk("scopes"); ok {
-		nv := strutil.RemoveDuplicates(v.([]string), true)
-		if !strutil.EquivalentSlices(nv, c.Scopes) {
-			c.Scopes = nv
+		if nv != c.APIToken {
+			c.APIToken = nv
 			changed = true
 		}
 	}

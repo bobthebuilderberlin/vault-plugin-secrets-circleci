@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/kms v1.4.0
 	github.com/gammazero/workerpool v1.1.2
 	github.com/golang/protobuf v1.5.2
+	github.com/grezar/go-circleci v0.6.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-hclog v0.16.2
 	github.com/hashicorp/go-multierror v1.1.1
