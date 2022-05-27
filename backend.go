@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 	"sync"
 
-	circleci "github.com/grezar/go-circleci"
+	circleci "github.com/bobthebuilderberlin/go-circleci"
 )
 
 type backend struct {
@@ -47,7 +47,8 @@ func Backend() *backend {
 
 		Paths: []*framework.Path{
 			b.pathConfig(),
-			b.pathContexts(),
+			b.pathContext(),
+			b.pathContextList(),
 			b.pathContextKey(),
 		},
 

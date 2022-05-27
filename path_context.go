@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grezar/go-circleci"
+	"github.com/bobthebuilderberlin/go-circleci"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func (b *backend) pathContexts() *framework.Path {
+func (b *backend) pathContext() *framework.Path {
 	return &framework.Path{
 		Pattern: "context/?$",
 

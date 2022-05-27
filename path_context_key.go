@@ -3,7 +3,7 @@ package circleci
 import (
 	"context"
 	"errors"
-	"github.com/grezar/go-circleci"
+	"github.com/bobthebuilderberlin/go-circleci"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
