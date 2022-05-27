@@ -20,14 +20,17 @@ func (b *backend) pathContextKey() *framework.Path {
 			"context": &framework.FieldSchema{
 				Type: framework.TypeString,
 				Description: "The name of the CircleCI context you would like to alter.",
+				Required: true,
 			},
 			"env": &framework.FieldSchema{
 				Type: framework.TypeString,
 				Description: "The name of the environment variable you want to read or write in the given CircleCI context.",
+				Required: true,
 			},
 			"value": &framework.FieldSchema{
 				Type: framework.TypeString,
 				Description: "The name of the environment variable you want to read or write in the given CircleCI context.",
+				Required: true,
 			},
 		},
 
@@ -38,24 +41,31 @@ func (b *backend) pathContextKey() *framework.Path {
 	}
 }
 
-// pathContextKeyWrite corresponds to PUT/POST gcpkms/decrypt/:key and is
+// pathContextsList corresponds to PUT/POST gcpkms/decrypt/:key and is
 // used to decrypt the ciphertext string using the named key.
 func (b *backend) pathContextKeyWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	circleCIContext := d.Get("context").(string)
 	envVariable := d.Get("env").(string)
 	value := d.Get("value").(string)
-	circleCIClient, closer, err := b.CircleCIClient(req.Storage)
-	orgID:= "e88e9a5b-2c4a-4dff-a770-d1f340c465d1"
-	contextList, err := circleCIClient.Contexts.List(ctx, circleci.ContextListOptions{OwnerID : &orgID })
+	config, err := b.Config(b.ctx, req.Storage)
 	if err != nil {
-		closer()
 		return nil, err
 	}
 
-	for _, context := range contextList.Items {
+	contextList, err := b.collectContexts(ctx, req, config)
+	if err != nil {
+		return nil, err
+	}
+
+	circleCIClient, closer, err := b.CircleCIClient(req.Storage)
+	if err != nil {
+		return nil, err
+	}
+	defer closer()
+
+	for _, context := range contextList {
 		if context.Name == circleCIContext {
 			contextVariable, err := circleCIClient.Contexts.AddOrUpdateVariable(ctx, context.ID, envVariable, circleci.ContextAddOrUpdateVariableOptions{Value: &value})
-			closer()
 			if err != nil {
 				return nil, err
 			}
@@ -67,6 +77,5 @@ func (b *backend) pathContextKeyWrite(ctx context.Context, req *logical.Request,
 			}, nil
 		}
 	}
-	closer()
 	return nil, errors.New("context with that name was not found")
 }

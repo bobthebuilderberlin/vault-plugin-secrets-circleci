@@ -22,6 +22,11 @@ func (b *backend) pathConfig() *framework.Path {
 				Description: `The CircleCI API token to use for authenticating to CircleCI.`,
 				Required: true,
 			},
+			"org-id": &framework.FieldSchema{
+				Type: framework.TypeString,
+				Description: `The ID of your CircleCI organization`,
+				Required: true,
+			},
 		},
 
 		ExistenceCheck: b.pathConfigExists,
@@ -55,6 +60,7 @@ func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *f
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"APIToken": c.APIToken,
+			"OrgId": c.OrgId,
 		},
 	}, nil
 }

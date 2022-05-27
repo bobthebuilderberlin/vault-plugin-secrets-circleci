@@ -47,6 +47,7 @@ func Backend() *backend {
 
 		Paths: []*framework.Path{
 			b.pathConfig(),
+			b.pathContexts(),
 			b.pathContextKey(),
 		},
 
@@ -112,7 +113,8 @@ func (b *backend) CircleCIClient(s logical.Storage) (*circleci.Client, func(), e
 
 	circleCIConfig:= circleci.DefaultConfig()
 	circleCIConfig.Token = config.APIToken
-	// Create and return the KMS client with a custom user agent.
+
+	// Create and return the CircleCI client
 	client, err := circleci.NewClient(circleCIConfig)
 
 	if err != nil {
