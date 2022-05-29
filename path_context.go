@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
+	circleci "github.com/bobthebuilderberlin/go-circleci"
 )
 
 func (b *backend) pathContext() *framework.Path {

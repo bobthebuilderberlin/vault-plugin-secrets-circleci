@@ -5,11 +5,12 @@ import (
 	"errors"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
+	circleci "github.com/bobthebuilderberlin/go-circleci"
 )
 
 func (b *backend) pathContextKey() *framework.Path {
 	return &framework.Path{
-		Pattern: "contexts/" + framework.GenericNameRegex("context") + "/" + framework.GenericNameRegex("env"),
+		Pattern: "context/" + framework.GenericNameRegex("context") + "/" + framework.GenericNameRegex("env"),
 
 		HelpSynopsis:    "Read and write environment variables in CircleCI contexts",
 		HelpDescription: "TODO: write description for path",

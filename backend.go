@@ -48,7 +48,7 @@ func Backend() *backend {
 		Paths: []*framework.Path{
 			b.pathConfig(),
 			b.pathContext(),
-			b.pathContextList(),
+			b.pathContextEnvList(),
 			b.pathContextKey(),
 		},
 

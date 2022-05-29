@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func (b *backend) pathContextList() *framework.Path {
+func (b *backend) pathContextEnvList() *framework.Path {
 	return &framework.Path{
-		Pattern: "context/" + framework.GenericNameRegex("context"),
+		Pattern: "context/" + framework.GenericNameRegex("context") + "/?$",
 
-		HelpSynopsis:    "List contexts env variables",
+		HelpSynopsis:    "List a context's environment variables",
 		HelpDescription: "TODO: write description for path",
 
 		Fields: map[string]*framework.FieldSchema{
@@ -22,14 +22,14 @@ func (b *backend) pathContextList() *framework.Path {
 		},
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ReadOperation: withFieldValidator(b.pathContextEnvList),
+			logical.ListOperation: withFieldValidator(b.pathContextEnvLister),
 		},
 	}
 }
 
 // pathContextsList corresponds to PUT/POST gcpkms/decrypt/:key and is
 // used to decrypt the ciphertext string using the named key.
-func (b *backend) pathContextEnvList(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathContextEnvLister(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	circleCIContext := d.Get("context").(string)
 
 	config, err := b.Config(b.ctx, req.Storage)
@@ -51,15 +51,14 @@ func (b *backend) pathContextEnvList(ctx context.Context, req *logical.Request, 
 	for i := 0; i < len(collectedContexts); i++ {
 		if collectedContexts[i].Name == circleCIContext {
 			contextVariableList, err := circleCIClient.Contexts.ListVariables(ctx, collectedContexts[i].ID)
+			listOfVariableNames := make([]string, len(contextVariableList.Items))
+			for i:=0; i < len(contextVariableList.Items) ;i++ {
+				listOfVariableNames[i] = contextVariableList.Items[i].Variable
+			}
 			if err != nil {
 				return nil, err
 			}
-			b.Logger().Debug("Number of variables: ", "size", len(contextVariableList.Items))
-			return &logical.Response{
-				Data: map[string]interface{}{
-					"variables": contextVariableList.Items,
-				},
-			}, nil
+			return logical.ListResponse(listOfVariableNames), nil
 		}
 	}
 	return nil, fmt.Errorf("no context with name '%v' was found", circleCIContext)
