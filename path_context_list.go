@@ -64,4 +64,3 @@ func (b *backend) pathContextEnvList(ctx context.Context, req *logical.Request, 
 	}
 	return nil, fmt.Errorf("no context with name '%v' was found", circleCIContext)
 }
-

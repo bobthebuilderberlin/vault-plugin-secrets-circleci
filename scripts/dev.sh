@@ -11,7 +11,7 @@ mkdir -p bin/
 cp "$GOPATH/bin/vault-plugin-secrets-circleci" bin/
 
 vault server \
-  -log-level=debug \
+  -log-level=warn \
   -dev \
   -dev-plugin-dir="$(pwd)/bin" &
 VAULT_PID=$!

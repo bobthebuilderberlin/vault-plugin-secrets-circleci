@@ -16,7 +16,7 @@ type backend struct {
 
 	// circleciClient is the actual client for connecting to CircleCI. It is cached on
 	// the backend for efficiency.
-	circleciClient      *circleci.Client
+	circleciClient *circleci.Client
 
 	// ctx and ctxCancel are used to control overall plugin shutdown. These
 	// contexts are given to any client libraries or requests that should be
@@ -43,7 +43,7 @@ func Backend() *backend {
 
 	b.Backend = &framework.Backend{
 		BackendType: logical.TypeLogical,
-		Help: "CircleCI secrets engine.",
+		Help:        "CircleCI secrets engine.",
 
 		Paths: []*framework.Path{
 			b.pathConfig(),
@@ -81,7 +81,6 @@ func (b *backend) ResetClient() {
 	b.circleciClient = nil
 }
 
-
 // CircleCIClient creates a new client for talking to the GCP KMS service.
 func (b *backend) CircleCIClient(s logical.Storage) (*circleci.Client, func(), error) {
 	// If the client already exists and is valid, return it
@@ -112,7 +111,7 @@ func (b *backend) CircleCIClient(s logical.Storage) (*circleci.Client, func(), e
 		return nil, nil, errors.New("APIToken must not be empty or nil")
 	}
 
-	circleCIConfig:= circleci.DefaultConfig()
+	circleCIConfig := circleci.DefaultConfig()
 	circleCIConfig.Token = config.APIToken
 
 	// Create and return the CircleCI client
@@ -130,7 +129,7 @@ func (b *backend) CircleCIClient(s logical.Storage) (*circleci.Client, func(), e
 	b.ctxLock.Unlock()
 	closer := func() {
 		b.ctxLock.TryLock()
-	    b.ctxLock.Unlock()
+		b.ctxLock.Unlock()
 	}
 	return client, closer, nil
 }

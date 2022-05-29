@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	hclog "github.com/hashicorp/go-hclog"
 	circleci "github.com/bobthebuilderberlin/vault-plugin-secrets-circleci"
+	hclog "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/plugin"
 )
@@ -14,7 +14,7 @@ func main() {
 
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error("plugin paniced", "error", r)
+			logger.Error("circleci secrets plugin panicked", "error", r)
 			os.Exit(1)
 		}
 	}()
@@ -31,7 +31,7 @@ func main() {
 		BackendFactoryFunc: circleci.Factory,
 		TLSProviderFunc:    tlsProviderFunc,
 	}); err != nil {
-		logger.Error("plugin shutting down", "error", err)
+		logger.Error("circleci secrets plugin shutting down", "error", err)
 		os.Exit(1)
 	}
 }

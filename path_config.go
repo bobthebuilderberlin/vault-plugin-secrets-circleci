@@ -13,19 +13,19 @@ func (b *backend) pathConfig() *framework.Path {
 	return &framework.Path{
 		Pattern: "config",
 
-		HelpSynopsis: "Configure the CircleCI secrets engine",
+		HelpSynopsis:    "Configure the CircleCI secrets engine",
 		HelpDescription: "Configure the CircleCI secrets engine with credentials",
 
 		Fields: map[string]*framework.FieldSchema{
 			"api-token": &framework.FieldSchema{
-				Type: framework.TypeString,
+				Type:        framework.TypeString,
 				Description: `The CircleCI API token to use for authenticating to CircleCI.`,
-				Required: true,
+				Required:    true,
 			},
 			"org-id": &framework.FieldSchema{
-				Type: framework.TypeString,
+				Type:        framework.TypeString,
 				Description: `The ID of your CircleCI organization`,
-				Required: true,
+				Required:    true,
 			},
 		},
 
@@ -60,7 +60,7 @@ func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, _ *f
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"APIToken": c.APIToken,
-			"OrgId": c.OrgId,
+			"OrgId":    c.OrgId,
 		},
 	}, nil
 }

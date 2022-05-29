@@ -7,15 +7,15 @@ import (
 
 // Config is the stored configuration.
 type Config struct {
-	APIToken string   `json:"api-token"`
-	OrgId string   `json:"org-id"`
+	APIToken string `json:"api-token"`
+	OrgId    string `json:"org-id"`
 }
 
 // DefaultConfig returns a config with the default values.
 func DefaultConfig() *Config {
 	return &Config{
 		APIToken: "",
-		OrgId: "",
+		OrgId:    "",
 	}
 }
 
@@ -42,7 +42,6 @@ func (c *Config) Update(d *framework.FieldData) (bool, error) {
 			changed = true
 		}
 	}
-
 
 	return changed, nil
 }

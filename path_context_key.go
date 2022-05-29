@@ -3,8 +3,6 @@ package circleci
 import (
 	"context"
 	"errors"
-	"github.com/bobthebuilderberlin/go-circleci"
-
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -13,24 +11,24 @@ func (b *backend) pathContextKey() *framework.Path {
 	return &framework.Path{
 		Pattern: "contexts/" + framework.GenericNameRegex("context") + "/" + framework.GenericNameRegex("env"),
 
-		HelpSynopsis: "Read and write environment variables in CircleCI contexts",
+		HelpSynopsis:    "Read and write environment variables in CircleCI contexts",
 		HelpDescription: "TODO: write description for path",
 
 		Fields: map[string]*framework.FieldSchema{
 			"context": &framework.FieldSchema{
-				Type: framework.TypeString,
+				Type:        framework.TypeString,
 				Description: "The name of the CircleCI context you would like to alter.",
-				Required: true,
+				Required:    true,
 			},
 			"env": &framework.FieldSchema{
-				Type: framework.TypeString,
+				Type:        framework.TypeString,
 				Description: "The name of the environment variable you want to read or write in the given CircleCI context.",
-				Required: true,
+				Required:    true,
 			},
 			"value": &framework.FieldSchema{
-				Type: framework.TypeString,
+				Type:        framework.TypeString,
 				Description: "The name of the environment variable you want to read or write in the given CircleCI context.",
-				Required: true,
+				Required:    true,
 			},
 		},
 
@@ -72,7 +70,7 @@ func (b *backend) pathContextKeyWrite(ctx context.Context, req *logical.Request,
 			b.Logger().Debug("Variable in context successfully created or updated", "context", context.Name, "contextID", context.ID, "envVariable", contextVariable.Variable)
 			return &logical.Response{
 				Data: map[string]interface{}{
-					"contextEnvironmentVariable" : contextVariable.Variable,
+					"contextEnvironmentVariable": contextVariable.Variable,
 				},
 			}, nil
 		}
