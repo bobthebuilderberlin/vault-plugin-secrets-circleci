@@ -14,7 +14,7 @@ func (b *backend) pathConfig() *framework.Path {
 		Pattern: "config",
 
 		HelpSynopsis:    "Configure the CircleCI secrets engine",
-		HelpDescription: "Configure the CircleCI secrets engine with credentials",
+		HelpDescription: "Configure the CircleCI secrets engine with the api-token and the org-id",
 
 		Fields: map[string]*framework.FieldSchema{
 			"api-token": &framework.FieldSchema{

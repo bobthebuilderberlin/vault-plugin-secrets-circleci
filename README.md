@@ -1,10 +1,8 @@
-# Vault Secrets Engine for Google Cloud KMS
+# Vault Secrets Engine for CircleCI Contexts
 
-[![Build Status](https://travis-ci.com/hashicorp/vault-plugin-secrets-gcpkms.svg?token=xjv5yxmcgdD1zvpeR4me&branch=master)](https://travis-ci.com/hashicorp/vault-plugin-secrets-gcpkms)
+<!-- [![Build Status](https://travis-ci.com/hashicorp/vault-plugin-secrets-gcpkms.svg?token=xjv5yxmcgdD1zvpeR4me&branch=master)](https://travis-ci.com/hashicorp/vault-plugin-secrets-gcpkms) -->
 
-This is a plugin backend for [HashiCorp Vault][vault] that manages [Google Cloud
-KMS][kms] keys and provides pass-through encryption/decryption of data through
-KMS.
+This is a plugin backend for [HashiCorp Vault][vault] that manages [CircleCI Contexts][contexts] 
 
 **Please note:** Security is taken seriously. If you believe you have found a
 security issue, **do not open an issue**. Responsibly disclose by contacting
@@ -13,124 +11,81 @@ security@hashicorp.com.
 
 ## Usage
 
-The Google Cloud KMS Vault secrets engine is automatically bundled and included
-in [Vault][vault] distributions. To activate the plugin, run:
+The CircleCI Vault secrets engine is not bundled and included
+in [Vault][vault] distributions. To use the plugin, run:
 
-```text
-$ vault secrets enable gcpkms
+```shell script
+go install github.com/bobthebuilderberlin/vault-plugin-secrets-circleci
+cp "$GOPATH/bin/vault-plugin-secrets-circleci" bin/
+vault server \
+  -dev \
+  -dev-plugin-dir="$(pwd)/bin" 
+vault secrets enable -path=circleci -plugin=vault-plugin-secrets-circleci plugin
 ```
 
-Optionally configure the backend with GCP credentials:
+To configure the plugin use the /config endpoint:
 
-```text
-$ vault write gcpkms/config credentials="..."
+```shell script
+vault write circleci/config api-token="<api-token>" org-id="<org-id>"
+```
+where the `api-token` is an API token create [here](https://app.circleci.com/settings/user/tokens) and the org-id is the Organization ID that can be found in the Overview of the Settings for your CircleCI Organization. 
+
+To list all you  CircleCI contexts:
+```shell script
+vault list circleci/context
 ```
 
-Ask Vault to generate a new Google Cloud KMS key:
-
-```text
-$ vault write gcpkms/keys/my-key \
-    key_ring=projects/my-project/locations/global/keyRings/my-keyring \
-    crypto_key=my-crypto-key
+To create a new CircleCI context:
+```shell script
+vault write circleci/context context=my-context
 ```
 
-This will create a KMS key in Google Cloud and requests to Vault will be
-encrypted/decrypted with that key.
-
-Encrypt some data:
-
-```text
-$ vault write gcpkms/encrypt/my-key plaintext="hello world"
+To list environment variables in a context
+```shell script
+vault list circleci/context/test-robert-1
 ```
 
-Decrypt the data:
-
-```text
-$ vault write gcpkms/decrypt/my-key ciphertext="..."
+To write a new environment variable:
+```shell script
+vault write circleci/context/my-context/foo value=bar
 ```
 
 
 ## Development
 
-This plugin is automatically distributed and included with Vault. **These
-instructions are only useful if you want to develop against the plugin.**
+Prerequisites:
 
 - Modern [Go](https://golang.org) (1.11+)
 - Git
 
 1. Clone the repo:
 
-    ```text
-    $ git clone https://github.com/hashicorp/vault-plugin-secrets-gcpkms
-    $ cd vault-plugin-secrets-gcpkms
+    ```shell script
+    git clone https://github.com/bobthebuilderberlin/vault-plugin-secrets-circleci
+    cd vault-plugin-secrets-circleci
     ```
 
 1. Build the binary:
 
-    ```text
+    ```shell script
     $ make dev
     ```
 
 1. Copy the compiled binary into a scratch dir:
 
-    ```text
-    $ cp $(which vault-plugin-secrets-gcpkms) ./bin/
+    ```shell script
+    $ cp $(which vault-plugin-secrets-circleci) ./bin/
     ```
 
 1. Run Vault plugins from that directory:
 
-    ```text
+    ```shell script
     $ vault server -dev -dev-plugin-dir=./bin
-    $ vault secrets enable -path=gcpkms -plugin=vault-plugin-secrets-gcpkms plugin
+    $ vault secrets enable -path=circleci -plugin=vault-plugin-secrets-circleci plugin
     ```
-
-### Documentation
-
-The documentation for the plugin lives in the [main Vault
-repository](//github.com/hashicorp/vault) in the `website/` folder. Please make any
-documentation updates as separate Pull Requests against that repo.
 
 ### Tests
 
-This plugin has both unit tests and acceptance tests. To run the acceptance
-tests, you must:
 
-- Have a GCP project with a service account with KMS admin privileges
-- Set `GOOGLE_CLOUD_PROJECT` to the name of the project
-
-We recommend running tests in a dedicated Google Cloud project. On a fresh
-project, you will need to enable the Cloud KMS API. This operation only needs to
-be completed once per project.
-
-```text
-$ gcloud services enable cloudkms.googleapis.com --project $GOOGLE_CLOUD_PROJECT
-```
-
-After the API is enabled, it may take a few minutes to propagate. Please wait
-and try again.
-
-To run the tests:
-
-```text
-$ make test
-```
-
-**Warning:** the acceptance tests change real resources which may incur real
-costs. Please run acceptance tests at your own risk.
-
-### Cleanup
-
-If a test panics or fails to cleanup, you can be left with orphaned KMS keys.
-While their monthly cost is minimal, this may be undesirable. As such, there a
-cleanup script is included. To execute this script, run:
-
-```text
-$ export GOOGLE_CLOUD_PROJECT=my-test-project
-$ go run test/cleanup/main.go
-```
-
-**WARNING!** This will delete all keys in most key rings, so do not run this
-against a production project!
-
-[kms]: https://cloud.google.com/kms
+[contexts]: https://circleci.com/docs/2.0/contexts/
 [vault]: https://www.vaultproject.io

@@ -10,7 +10,6 @@ require (
 	github.com/hashicorp/go-hclog v1.2.0
 	github.com/hashicorp/vault/api v1.6.0
 	github.com/hashicorp/vault/sdk v0.5.0
-	github.com/jeffchao/backoff v0.0.0-20140404060208-9d7fd7aa17f2
 	github.com/satori/go.uuid v1.2.0
 	google.golang.org/api v0.81.0
 	google.golang.org/genproto v0.0.0-20220526192754-51939a95c655
