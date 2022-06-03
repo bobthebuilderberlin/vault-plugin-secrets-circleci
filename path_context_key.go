@@ -33,9 +33,9 @@ func (b *backend) pathContextKey() *framework.Path {
 			},
 		},
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.CreateOperation: withFieldValidator(b.pathContextKeyWrite),
-			logical.UpdateOperation: withFieldValidator(b.pathContextKeyWrite),
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.CreateOperation: &framework.PathOperation{ Callback: withFieldValidator(b.pathContextKeyWrite)},
+			logical.UpdateOperation: &framework.PathOperation{ Callback: withFieldValidator(b.pathContextKeyWrite)},
 		},
 	}
 }

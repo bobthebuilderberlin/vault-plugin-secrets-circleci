@@ -23,11 +23,11 @@ func (b *backend) pathContext() *framework.Path {
 			},
 		},
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ListOperation:   withFieldValidator(b.pathContextsList),
-			logical.CreateOperation: withFieldValidator(b.pathContextWrite),
-			logical.UpdateOperation: withFieldValidator(b.pathContextWrite),
-			logical.DeleteOperation: withFieldValidator(b.pathContextDelete),
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.ListOperation:   &framework.PathOperation{ Callback: withFieldValidator(b.pathContextsList)},
+			logical.CreateOperation: &framework.PathOperation{ Callback: withFieldValidator(b.pathContextWrite)},
+			logical.UpdateOperation: &framework.PathOperation{ Callback: withFieldValidator(b.pathContextWrite)},
+			logical.DeleteOperation: &framework.PathOperation{ Callback: withFieldValidator(b.pathContextDelete)},
 		},
 	}
 }

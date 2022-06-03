@@ -31,11 +31,11 @@ func (b *backend) pathConfig() *framework.Path {
 
 		ExistenceCheck: b.pathConfigExists,
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.CreateOperation: withFieldValidator(b.pathConfigWrite),
-			logical.UpdateOperation: withFieldValidator(b.pathConfigWrite),
-			logical.ReadOperation:   withFieldValidator(b.pathConfigRead),
-			logical.DeleteOperation: withFieldValidator(b.pathConfigDelete),
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.CreateOperation: &framework.PathOperation{Callback: withFieldValidator(b.pathConfigWrite)},
+			logical.UpdateOperation: &framework.PathOperation{Callback: withFieldValidator(b.pathConfigWrite)},
+			logical.ReadOperation:   &framework.PathOperation{Callback: withFieldValidator(b.pathConfigRead)},
+			logical.DeleteOperation: &framework.PathOperation{Callback: withFieldValidator(b.pathConfigDelete)},
 		},
 	}
 }
