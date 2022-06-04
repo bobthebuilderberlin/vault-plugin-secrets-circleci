@@ -126,9 +126,7 @@ func (b *backend) CircleCIClient(s logical.Storage) (*circleci.Client, func(), e
 
 	// Cache the client
 	b.circleciClient = client
-	b.ctxLock.Unlock()
 	closer := func() {
-		b.ctxLock.TryLock()
 		b.ctxLock.Unlock()
 	}
 	return client, closer, nil
